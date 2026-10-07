@@ -1,30 +1,90 @@
 # Session 19: Cloud & Terraform in Action
 
-This session explores core cloud architecture concepts on Amazon Web Services (AWS) and automates cloud infrastructure provisioning using Terraform.
+This session covers an end-to-end cloud infrastructure project provisioned on AWS using HashiCorp Terraform.
 
 ---
 
-## Key Modules & Topics
+## 1. Project Overview & Suggested Architecture
 
-1. **Cloud Computing Fundamentals:**
-   - **Service Models**: IaaS (Infrastructure as a Service), PaaS, SaaS.
-   - **Global Infrastructure**: AWS Regions, Availability Zones (AZs), and edge locations.
-   - Related Directories: [`01-cloud-service-models/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/01-cloud-service-models), [`02-regions-and-availability-zones/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/02-regions-and-availability-zones)
+```text
+                           [ Terraform Configuration ]
+                                        │
+                   ┌────────────────────┴────────────────────┐
+                   ▼                                         ▼
+         [ AWS VPC: 10.20.0.0/16 ]                  [ S3 Asset Bucket ]
+                   │
+         [ Internet Gateway (IGW) ]
+                   │
+         [ Public Subnet: 10.20.1.0/24 ]
+                   │
+         [ Security Group (Ports 80, 22) ]
+                   │
+         [ EC2 Instance (Web Server) ]
+```
 
-2. **AWS Networking Essentials:**
-   - **VPC (Virtual Private Cloud)**: Custom CIDR blocks (e.g. `10.20.0.0/16`).
-   - **Subnets**: Public vs private subnets and IP range calculations.
-   - **Internet Gateway (IGW)**: Connecting your VPC to the public internet.
-   - **Route Tables**: Directing subnet traffic to local routes and Internet Gateways.
-   - **Security Groups**: Stateful instance-level firewalls controlling inbound and outbound traffic.
-   - Related Directories: [`03-vpc-and-subnets/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/03-vpc-and-subnets), [`04-route-tables-and-internet-gateway/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/04-route-tables-and-internet-gateway), [`05-security-groups/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/05-security-groups)
+### Components Demonstrated:
+1. **Terraform Providers:** Official HashiCorp `hashicorp/aws` provider.
+2. **Variables:** Parameterized AWS region (`var.aws_region`), VPC CIDR, instance types, and environment tags.
+3. **Resources:** `aws_vpc`, `aws_subnet`, `aws_internet_gateway`, `aws_route_table`, `aws_route_table_association`, `aws_security_group`, `aws_instance`, `aws_s3_bucket`.
+4. **Outputs:** Public IP address of the EC2 instance, VPC ID, S3 bucket name.
+5. **Resource Dependencies:** Explicit (`depends_on`) and implicit attribute references (`vpc_id = aws_vpc.main.id`).
+6. **State Management:** Tracking real-world cloud state in `terraform.tfstate`.
 
-3. **Terraform Infrastructure as Code (IaC):**
-   - Defining AWS provider configurations and region variables.
-   - Writing declarative HCL code for VPCs, Subnets, Gateways, and Security Groups.
-   - Terraform lifecycle workflow: `init`, `validate`, `plan`, `apply`, `destroy`.
-   - Related Directories: [`06-terraform-vpc/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/06-terraform-vpc), [`07-terraform-workflow/`](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/07-terraform-workflow)
+---
 
-4. **Hands-on Capstone Mini-Project:**
-   - End-to-end automated deployment of an AWS VPC, public subnet, route table, internet gateway, and web security group using Terraform.
-   - See [08-mini-project/README.md](file:///home/akshanshsinha/DevOps/devops-heros/session19-cloud-terraform/08-mini-project/README.md) for full project architecture and manifests.
+## 2. Directory Structure
+
+```text
+session19-cloud-terraform/
+├── 01-cloud-service-models/
+├── 02-regions-and-availability-zones/
+├── 03-vpc-and-subnets/
+├── 04-route-tables-and-internet-gateway/
+├── 05-security-groups/
+├── 06-terraform-vpc/         # Modular VPC IaC codebase
+├── 07-terraform-workflow/    # Terraform execution commands & notes
+├── 08-mini-project/          # Complete AWS deployment manifests
+└── README.md
+```
+
+---
+
+## 3. Step-by-Step Terraform Commands
+
+```bash
+cd 08-mini-project
+
+# 1. Initialize AWS provider plugins
+terraform init
+
+# 2. Validate configuration syntax
+terraform validate
+
+# 3. Preview planned infrastructure additions
+terraform plan -out=tfplan
+
+# 4. Provision resources on AWS
+terraform apply tfplan
+
+# 5. Inspect deployed outputs (Public IP, Bucket Name)
+terraform output
+
+# 6. Tear down all AWS resources
+terraform destroy -auto-approve
+```
+
+---
+
+## 4. Deliverables & Screenshot Evidence
+
+* **Screenshot 1: Architecture Diagram / AWS Console Resources**  
+  <!-- Add screenshot: ![AWS Resources](screenshots/aws-resources.png) -->
+
+* **Screenshot 2: `terraform plan` Output**  
+  <!-- Add screenshot: ![Terraform Plan](screenshots/terraform-plan.png) -->
+
+* **Screenshot 3: `terraform apply` Success & Outputs**  
+  <!-- Add screenshot: ![Terraform Apply](screenshots/terraform-apply.png) -->
+
+* **Screenshot 4: `terraform destroy` Completion**  
+  <!-- Add screenshot: ![Terraform Destroy](screenshots/terraform-destroy.png) -->

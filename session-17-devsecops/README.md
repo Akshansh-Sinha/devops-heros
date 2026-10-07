@@ -1,39 +1,97 @@
 # Session 17: Complete CI/CD & DevSecOps
 
-This session focuses on shifting security left by integrating automated security scans, vulnerability checks, and policy gates directly into CI/CD pipelines.
+This session demonstrates a complete, automated **CI/CD + DevSecOps Pipeline** using GitHub Actions, Trivy, Gitleaks, Semgrep, and Kubernetes.
 
 ---
 
-## Key Modules & Topics
+## 1. End-to-End DevSecOps Pipeline Flow
 
-1. **Secret Scanning:**
-   - Preventing hardcoded API keys, tokens, and credentials from entering source control.
-   - Tools: Gitleaks, TruffleHog.
-   - Related Directory: [`06-secret-scanning/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/06-secret-scanning)
+```text
+       [ Developer Code Commit ]
+                   │
+                   ▼
+         [ 1. Build & Lint ]
+                   │
+                   ▼
+         [ 2. Unit Testing ]
+                   │
+                   ▼
+     [ 3. SAST (Static Analysis) ] (Semgrep / SonarQube)
+                   │
+                   ▼
+    [ 4. SCA (Dependency Scan) ] (npm audit / pip-audit / Snyk)
+                   │
+                   ▼
+    [ 5. Secret Scanning ] (Gitleaks / TruffleHog)
+                   │
+                   ▼
+        [ 6. Docker Image Build ]
+                   │
+                   ▼
+ [ 7. Container Image Scan ] (Trivy / Grype)
+                   │
+                   ▼
+      [ 8. Security Quality Gate ] (Fail if Severity == CRITICAL)
+                   │
+                   ▼
+  [ 9. Push to Container Registry ] (GitHub Packages / Docker Hub)
+                   │
+                   ▼
+[ 10. Continuous Deployment ] (Kubernetes Cluster via kubectl/ArgoCD)
+```
 
-2. **Static Application Security Testing (SAST):**
-   - Analyzing source code for known security flaws, injection vectors, and anti-patterns before compilation.
-   - Tools: Semgrep, SonarQube, Bandit.
-   - Related Directory: [`04-sast/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/04-sast)
+---
 
-3. **Software Composition Analysis (SCA):**
-   - Auditing open-source dependencies and package manifests (`package.json`, `requirements.txt`) for CVEs.
-   - Tools: Snyk, OWASP Dependency-Check, npm audit.
-   - Related Directory: [`05-sca/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/05-sca)
+## 2. DevSecOps Tooling Breakdown
 
-4. **Container Image Scanning:**
-   - Scanning base OS layers and application packages inside Docker container images for vulnerabilities.
-   - Tools: Trivy, Grype, Docker Scout.
-   - Related Directory: [`07-container-image-scanning/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/07-container-image-scanning)
+| Security Stage | Tool Used | Purpose | Pass / Fail Criteria |
+|---|---|---|---|
+| **Secret Scanning** | **Gitleaks** | Detects hardcoded API keys, JWTs, and AWS secrets | Fails if any valid secret found |
+| **SAST** | **Semgrep** | Analyzes application source code for CWE flaws | Fails on High/Critical code vulnerabilities |
+| **SCA** | **Pip-Audit / Snyk** | Audits open-source dependencies in `requirements.txt` | Fails on Known Vulnerable Packages |
+| **Container Scan** | **Trivy** | Scans OS layers & installed packages inside container | Fails on `CRITICAL` CVEs |
+| **Security Gate** | **GitHub Actions Step** | Enforces build-break threshold before deployment | Blocks deployment on policy breach |
 
-5. **Security Quality Gates:**
-   - Enforcing automated pass/fail thresholds in CI/CD (e.g. fail pipeline on CRITICAL or HIGH vulnerabilities).
-   - Related Directory: [`08-security-gates/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/08-security-gates)
+---
 
-6. **Secure Container Registry & Kubernetes Deployment:**
-   - Image signing, pull secrets, and least-privilege runtime security contexts.
-   - Related Directories: [`02-container-registry/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/02-container-registry), [`03-kubernetes-deployment/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/03-kubernetes-deployment)
+## 3. Demo Application & GitHub Actions Workflow
 
-7. **End-to-End DevSecOps Demo Project:**
-   - Complete GitHub Actions pipeline running SAST, SCA, Secret Scanning, and Trivy container scan on the `hey-cicd` application.
-   - See [demo/README.md](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/demo/README.md) for full setup instructions.
+The reference application is a microservices dashboard located in [`demo/`](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/demo):
+* **Source Application:** [demo/app/app.py](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/demo/app/app.py)
+* **Dockerfile:** [demo/Dockerfile](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/demo/Dockerfile)
+* **GitHub Actions Workflow:** [demo/.github/workflows/devsecops.yml](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/demo/.github/workflows/devsecops.yml)
+* **Kubernetes Manifests:** [demo/k8s/](file:///home/akshanshsinha/DevOps/devops-heros/session-17-devsecops/demo/k8s)
+
+---
+
+## 4. Pipeline Execution & Verification Commands
+
+```bash
+# 1. Run local secret scanning with Gitleaks
+gitleaks detect --source . --verbose
+
+# 2. Run local SAST with Semgrep
+semgrep scan --config auto demo/
+
+# 3. Build Docker container image locally
+docker build -t devsecops-demo:v1 demo/
+
+# 4. Scan image with Trivy (failing on CRITICAL vulnerabilities)
+trivy image --severity CRITICAL --exit-code 1 devsecops-demo:v1
+
+# 5. Apply deployment to Kubernetes
+kubectl apply -f demo/k8s/
+```
+
+---
+
+## 5. Deliverables & Screenshot Evidence
+
+* **Screenshot 1: Successful GitHub Actions Pipeline Run**  
+  <!-- Add screenshot: ![Pipeline Execution](screenshots/pipeline-run.png) -->
+
+* **Screenshot 2: Trivy Security Scan Output**  
+  <!-- Add screenshot: ![Trivy Scan](screenshots/trivy-scan.png) -->
+
+* **Screenshot 3: Kubernetes Deployment Status (`kubectl get pods,svc`)**  
+  <!-- Add screenshot: ![K8s Deployment](screenshots/k8s-deployment.png) -->
