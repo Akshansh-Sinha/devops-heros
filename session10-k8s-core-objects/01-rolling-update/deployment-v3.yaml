@@ -33,7 +33,7 @@ spec:
                   - -c
                   - |
                     echo '<html><body style="background:#0f3460;color:#e94560;font-family:monospace;font-size:3em;text-align:center;padding-top:20vh">
-                    <p>VERSION: v2</p><p style="font-size:0.5em;color:#53d8fb">Rolling Update Demo - NEW VERSION!</p></body></html>' \
+                    <p>VERSION: v3</p><p style="font-size:0.5em;color:#53d8fb">Rolling Update Demo - NEW VERSION!</p></body></html>' \
                     > /usr/share/nginx/html/index.html
           resources:
             requests:
